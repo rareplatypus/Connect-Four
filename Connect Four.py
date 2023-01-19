@@ -1,128 +1,153 @@
-#Python Code for a Connect Four Game 
-#===========================
 import os
+import random
 
-#Constants: 
-NUM_COLS = 7
-NUM_ROWS = 6
-LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', "G"]
-PLAYER_ICONS = ['X', 'O', 'V', 'M', 'H']
-grid = []
+BOARD_ROW = 5
+BOARD_COL = 5
+PLAYER_NUM = 3
+VARIABLES1 = ["O", "X", "V", "H", "M"]
+VARIABLES = VARIABLES1[:PLAYER_NUM]
+random.shuffle(VARIABLES)
+WIN_CON = 4
+count = -1
 
-#===============================================================================
-#Print Grid: Function to print out the Connect 4 Grid
-def print_grid(grid): 	
-	for letter in LETTERS:    
-		print('   ' + letter, end = "")
+# marking how many marks are in each column
+stack = []
+for col in range(BOARD_COL):
+	stack.append(BOARD_ROW - 1)
 
-	print("\n +" + "---+" * NUM_COLS)
+# create the inner board
+inner_board = []
+for row in range(BOARD_ROW):
+	col_list = []
+	for col in range(BOARD_COL):
+		col_list.append(" ")
+	inner_board.append(col_list)
 
-	for row in range(NUM_ROWS):    
-		print(' |', end = " ")
-		for col in range(NUM_COLS):        
-			print(grid[row][col] + ' | ', end = "") 
-		print("\n +" + "---+" * NUM_COLS)
-#===============================================================================
-#Update Grid: Function to update the grid depending on the user's input
-def update_grid(player, column):
-	c = ord(column) - 65 #Converting column (str) to an integer column on the grid
-	
-	for r in range(NUM_ROWS-1, -2, -1):
-		if(r == -1):
-			print_grid(grid)
-			print("Column is already full! Try another available column!")
-			return True
+# create the outer board
+outer_board = []
+for row in range(BOARD_ROW):
+	col_list = []
+	for col in range(BOARD_COL):
+		col_list.append(" ")
+	outer_board.append(col_list)
 
-		elif(grid[r][c] == ' '):
-			grid[r][c] = PLAYER_ICONS[player]
-			print_grid(grid)
-			win_checker(r, c, player)
-			return False
-#===============================================================================
-#Player Input: This function will act as the input for Player 1 (X)
-def player_input(player): 
-	p = input("Player " + str(player+1) + " (" + PLAYER_ICONS[player] + "), " + "Please select a column: ")
-	
-	while(p not in LETTERS): 
-		p = input("Please select a valid column: ")
+# function for printing
+def print_board():
+	for alphabet in range(BOARD_COL):
+		print("  " + chr(65 + alphabet) + " ", end = "")
 
-	return p
-#===============================================================================
-#Win Checker: This function will constantly check after every input whether a player has won a game
-def win_checker(r, c, player):
-	#r and c are exactly where the player has placed their marker
-	#If they win, we terminate the program here...
-	
-	#Nested Loops: 
-	#If the next one in the chain is X
-		#If the next one in the chain is X
-			#If the next one in the chain is X
-				#You win: Terminate!
+	print("\n+" + "---+"*BOARD_COL, end = "")
 
-	#Have to account for grid boundaries, whether the X is in the middle of a chain etc. 
-	#Maybe can use recursion?!? How to keep track of 4 recursive cases?
-	#If detetcted a value off grid, then move either only backwards or forwards
+	for row in range(BOARD_ROW):
+		print("\n|", end = "")
+		for col in range(BOARD_COL):
+			print(" " + inner_board[row][col] + " |", end = "")
+		print("\n+" + "---+"*BOARD_COL, end = "")
 
-	if(grid[r][c] == PLAYER_ICONS[player]):
-		if(r+1 > -1 and r+1 < 6):
-			win_checker(r+1, c, player)
+# print the outer board of the first time
+print_board()
+print()
+
+# Selecting players and sequence
+for items in range(PLAYER_NUM):
+	print("Player", VARIABLES[items], "goes", items + 1)
+
+# print the winning condition
+print("Match", WIN_CON, "checkers to win the game")
+
+validity = True
+while validity == True:
+	# user input location
+	temp = input("\nInput a column: ")
+
+	# check if the location is valid
+	# # try exception handle
+	location = 0
+	if len(temp) == 1 and temp.isdigit() == False and 0 <= ord(temp) - 65 < BOARD_COL:
+		location = ord(temp) - 65
+
+		# change the inner board
+		if 0 <= stack[location]:
+			count = count + 1
+			inner_board[stack[location]][location] = VARIABLES[count % PLAYER_NUM]
 			
-			
-		else:
-			win_checker(r-1, c, player)
-	
-
-#===============================================================================
-#MAIN Function:
-def main(): 
-	print("==============================WELCOME TO CONNECT 4==============================")
-	print("Objective: Get 4 in a row to win!")
+			# mark that that column increase 1 unit
+			stack[location] = int(stack[location]) - 1
 		
-	players = int(input("How many players are playing? (Max. 5 Players): "))
-	while(players < 0 or players > 6):
-		players = int(input("Please enter a valid number of players: "))
-	print("======================================BEGIN=====================================")
-	
-	#Set up an empty grid:
-	for row in range(NUM_ROWS): 
-			row_list = []
-			for col in range(NUM_COLS):
-				row_list.append(' ')
-			grid.append(row_list)
-	
-	#Then we will print the empty grid. 
-	print_grid(grid)
-
-	#Now each player will have their turn:
-	turns = 0
-	
-	#If the turns ever equals all possible positions, then the game ends and we break.
-	while(turns != NUM_ROWS*NUM_COLS):
-		for player in range(players):
-			column = player_input(player)
+			# clear the screen
 			os.system("clear")
-			missed_turn = update_grid(player, column) #player = Player Number // #column = Column that they have chosen
-			if(missed_turn == False): turns += 1
 
-			#This ensures that if a column is full, their turn isn't skipped and repeated.
-			while(missed_turn == True): 
-				column = player_input(player)
-				os.system("clear")
-				missed_turn = update_grid(player, column) 
-				if(missed_turn == False): turns += 1
+			# print the outer board
+			print_board()
 
-	if(turns == NUM_COLS*NUM_ROWS): print("Grid has been filled! Game Complete!")
-#===============================================================================
-#Program Execution:
-main()
+			# check the condition of draw
+			if count + 1 == BOARD_COL*BOARD_ROW:
+				print("\nGAMEOVER, DRAW!")
+				break
 
+			# check if a line is made with the inner board
+			# # horizontally
+			match_times = 0
+			for row in range(BOARD_ROW):
+				if validity == False:
+					break
+				for col in range(BOARD_COL):
+					if inner_board[row][col] == VARIABLES[count % PLAYER_NUM]:
+						match_times = match_times + 1
+						if match_times == WIN_CON:
+							validity = False
+							print("\nPlayer", VARIABLES[count % PLAYER_NUM], "wins the game!")
+							break
+					else:
+						match_times = 0
+			# # vertically
+			match_times = 0
+			for col in range(BOARD_COL):
+				if validity == False:
+					break
+				for row in range(BOARD_ROW):
+					if inner_board[row][col] == VARIABLES[count % PLAYER_NUM]:
+						match_times = match_times + 1
+						if match_times == WIN_CON:
+							validity = False
+							print("\nPlayer", VARIABLES[count % PLAYER_NUM], "wins the game!")
+							break
+					else:
+						match_times = 0
+			
+			# # diagonally
+			match_times = 0
+			for row in range(BOARD_ROW - 1,-1,-1):
+				if validity == False:
+					break
+				for col in range(BOARD_COL):
+					if row + col < BOARD_ROW:
+						if inner_board[row + col][col] == VARIABLES[count % PLAYER_NUM]:
+							match_times = match_times + 1
+							if match_times == WIN_CON:
+								validity = False
+								print("\nPlayer", VARIABLES[count % PLAYER_NUM], "wins the game!")
+								break
+					else:
+						match_times = 0
+			
+			match_times = 0
+			for row in range(BOARD_ROW - 1, -1, -1):
+				for col in range(BOARD_COL):
+					if validity == False:
+							break
+					if row + col < BOARD_ROW:
+						if inner_board[row + col][BOARD_COL - 1 - col] == VARIABLES[count % PLAYER_NUM]:
+							match_times = match_times + 1
+							if match_times == WIN_CON:
+								validity = False
+								print("\nPlayer", VARIABLES[count % PLAYER_NUM], "wins the game!")
+								break
+					else:
+						match_times = 0
 
-
-#Problems that need fixing: 
-#1) Create a function that checks whether they have 4 in a row... Idk how to do this but we shall check...
-#For this you may need to check, every tile that has X and check if row+1. row+2 and row+3 is full, same logic like that diagonally and vertically too... This is quite inefficient though, maybe a better way?
-
-# I was thinking: 
-# Have 4 if else statements nested under each other. So one would be to check if there is a second connection (either vetically horizontally or diagonally)
-# Then there would be a third loop for the third connection
-# If there was a fourth connection, then we break the entire thing and return true and this will termiante the entire code. 
+		else:
+			count = count + 1
+			print("This column is full!\n")	
+	else:
+		print("Your input is incorrect!")
