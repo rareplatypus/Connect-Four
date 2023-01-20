@@ -1,153 +1,176 @@
 import os
 import random
 
+#Constants: 
 BOARD_ROW = 5
 BOARD_COL = 5
-PLAYER_NUM = 3
-VARIABLES1 = ["O", "X", "V", "H", "M"]
-VARIABLES = VARIABLES1[:PLAYER_NUM]
-random.shuffle(VARIABLES)
 WIN_CON = 4
-count = -1
-
-# marking how many marks are in each column
-stack = []
+ICONS = ['X', 'O', 'V', 'M', 'H']
+#==============================================================================================================================
+#1) Column_Space is a list that keeps track of how much space is left in every column:
+column_space = []
 for col in range(BOARD_COL):
-	stack.append(BOARD_ROW - 1)
+    column_space.append(BOARD_ROW - 1)
 
-# create the inner board
-inner_board = []
+#2) Board Setup: 
+board = []
 for row in range(BOARD_ROW):
-	col_list = []
-	for col in range(BOARD_COL):
-		col_list.append(" ")
-	inner_board.append(col_list)
-
-# create the outer board
-outer_board = []
-for row in range(BOARD_ROW):
-	col_list = []
-	for col in range(BOARD_COL):
-		col_list.append(" ")
-	outer_board.append(col_list)
-
-# function for printing
+    row_list = []
+    for col in range(BOARD_COL):
+        row_list.append(" ")
+    board.append(row_list) 
+#==============================================================================================================================
+#This function is used to print out the entire board
 def print_board():
-	for alphabet in range(BOARD_COL):
-		print("  " + chr(65 + alphabet) + " ", end = "")
+    for alphabet in range(BOARD_COL):
+        print("  " + chr(65 + alphabet) + " ", end = "")
+    
+    print("\n+" + "---+"*BOARD_COL, end = "")
 
-	print("\n+" + "---+"*BOARD_COL, end = "")
+    for row in range(BOARD_ROW):
+        print("\n|", end = "")
+        for col in range(BOARD_COL):
+            print(" " + board[row][col] + " |", end = "")
+        print("\n+" + "---+"*BOARD_COL, end = "")
+#==============================================================================================================================
+#This function will ensure that the user input is valid:
+def user_input(column):
+    if((len(column) == 1) and (column.isdigit() == False) and (0 <= ord(column) - 65 < BOARD_COL)):
+        return(ord(column) - 65)
+    
+    else:
+        print("This is an invalid input!")
+#==============================================================================================================================
+#This function checks if the user has connected 4 in-a-row in all directions (vertically, horizontally, diagonally):
+def win_check(player):
 
-	for row in range(BOARD_ROW):
-		print("\n|", end = "")
-		for col in range(BOARD_COL):
-			print(" " + inner_board[row][col] + " |", end = "")
-		print("\n+" + "---+"*BOARD_COL, end = "")
+    #Horizontally:
+    matches = 0
+    for row in range(BOARD_ROW):
+        for col in range(BOARD_COL):
+            if board[row][col] == ICONS[player]:
+                matches += 1
+                
+                #If match_times is the Winning Condition, a player has clearly won, hence we can switch off the game:
+                if matches == WIN_CON: 
+                    print("Horizontal Win!")
+                    print("Player", (player+1), "wins the game!")
+                    exit()
+            
+            else:
+                matches = 0
 
-# print the outer board of the first time
-print_board()
-print()
+    #Vertically: 
+    matches = 0
+    for col in range(BOARD_COL):
+        for row in range(BOARD_ROW):
+            if board[row][col] == ICONS[player]:
+                matches += 1
+                
+                #If match_times is the Winning Condition, a player has clearly won, hence we can switch off the game:
+                if matches == WIN_CON: 
+                    print("Vertical Win!")
+                    print("Player", (player+1), "wins the game!")
+                    exit()
+            
+            else:
+                matches = 0
 
-# Selecting players and sequence
-for items in range(PLAYER_NUM):
-	print("Player", VARIABLES[items], "goes", items + 1)
+    #Diagonally (bothways):
+    matches = 0
+    for row in range(BOARD_ROW - 1,-1,-1):
+        for col in range(BOARD_COL):
+            if row + col < BOARD_ROW:
+                if board[row + col][col] == ICONS[player]:
+                    matches += 1
+                    
+                    if matches == WIN_CON:
+                        print("Diagonal 1 Win!")
+                        print("Player", (player+1), "wins the game!")
+                        exit()
+            else:
+                matches = 0
+    
+    matches = 0
+    for row in range(BOARD_ROW - 1, -1, -1):
+        for col in range(BOARD_COL):
+            if row + col < BOARD_ROW:
+                if board[row + col][BOARD_COL - 1 - col] == ICONS[player]:
+                    matches += 1
+                    
+                    if matches == WIN_CON:
+                        print("Diagonal 2 Win!")
+                        print("Player", (player+1), "wins the game!")
+                        exit()
+            else:
+                matches = 0
 
-# print the winning condition
-print("Match", WIN_CON, "checkers to win the game")
+    #Return false by default
+    return False
+#==============================================================================================================================
+#Main Function: 
+def main():
+    os.system("clear") 
+    count = 0
 
-validity = True
-while validity == True:
-	# user input location
-	temp = input("\nInput a column: ")
+    #Printing the beginning of the program:
+    print("============================== Welcome to Connect 4! ==============================")
+    players = int(input("How many players are playing? (Max. 5): "))
+    while(players <= 0 or players > 6):
+        players = int(input("Please enter a valid number of players (Max. 5 Players: "))
+    print()
+    print("=====================================BEGIN=========================================")
 
-	# check if the location is valid
-	# # try exception handle
-	location = 0
-	if len(temp) == 1 and temp.isdigit() == False and 0 <= ord(temp) - 65 < BOARD_COL:
-		location = ord(temp) - 65
+    #Print the board for the first time:
+    print_board()
+    print()
 
-		# change the inner board
-		if 0 <= stack[location]:
-			count = count + 1
-			inner_board[stack[location]][location] = VARIABLES[count % PLAYER_NUM]
-			
-			# mark that that column increase 1 unit
-			stack[location] = int(stack[location]) - 1
-		
-			# clear the screen
-			os.system("clear")
+    #Print the players (and their respective icons) as well as the winning condition:
+    for items in range(players):
+        print("Player", (items+1), "has the icon:", ICONS[players]) 
 
-			# print the outer board
-			print_board()
+    print("How to Win: Match", WIN_CON, "checkers to win the game!\n")
 
-			# check the condition of draw
-			if count + 1 == BOARD_COL*BOARD_ROW:
-				print("\nGAMEOVER, DRAW!")
-				break
+    #This ensures that all the turns are accounted for on the board. 
+    while(True):
+        #User makes an input:
+        for player in range(players):
+            Continue = True
+            while(Continue): #Continue ensures that if a column is full, the same player repeats their turn
+                Continue = False
+                str_display = "Player " + str(player+1) + " (" + str(ICONS[player]) + "), " + "Please enter a valid column: "
+                player_input = user_input(input(str_display))
 
-			# check if a line is made with the inner board
-			# # horizontally
-			match_times = 0
-			for row in range(BOARD_ROW):
-				if validity == False:
-					break
-				for col in range(BOARD_COL):
-					if inner_board[row][col] == VARIABLES[count % PLAYER_NUM]:
-						match_times = match_times + 1
-						if match_times == WIN_CON:
-							validity = False
-							print("\nPlayer", VARIABLES[count % PLAYER_NUM], "wins the game!")
-							break
-					else:
-						match_times = 0
-			# # vertically
-			match_times = 0
-			for col in range(BOARD_COL):
-				if validity == False:
-					break
-				for row in range(BOARD_ROW):
-					if inner_board[row][col] == VARIABLES[count % PLAYER_NUM]:
-						match_times = match_times + 1
-						if match_times == WIN_CON:
-							validity = False
-							print("\nPlayer", VARIABLES[count % PLAYER_NUM], "wins the game!")
-							break
-					else:
-						match_times = 0
-			
-			# # diagonally
-			match_times = 0
-			for row in range(BOARD_ROW - 1,-1,-1):
-				if validity == False:
-					break
-				for col in range(BOARD_COL):
-					if row + col < BOARD_ROW:
-						if inner_board[row + col][col] == VARIABLES[count % PLAYER_NUM]:
-							match_times = match_times + 1
-							if match_times == WIN_CON:
-								validity = False
-								print("\nPlayer", VARIABLES[count % PLAYER_NUM], "wins the game!")
-								break
-					else:
-						match_times = 0
-			
-			match_times = 0
-			for row in range(BOARD_ROW - 1, -1, -1):
-				for col in range(BOARD_COL):
-					if validity == False:
-							break
-					if row + col < BOARD_ROW:
-						if inner_board[row + col][BOARD_COL - 1 - col] == VARIABLES[count % PLAYER_NUM]:
-							match_times = match_times + 1
-							if match_times == WIN_CON:
-								validity = False
-								print("\nPlayer", VARIABLES[count % PLAYER_NUM], "wins the game!")
-								break
-					else:
-						match_times = 0
+                #Checking if the column has space to put another ICON. 
+                #If so, it will take the ICON (of the appropriate player) and place it on the grid column.
+                if 0 <= column_space[player_input]:
+                    #print("Before:", column_space[player_input], "\n")
+                    count += 1
+                    board[column_space[player_input]][player_input] = ICONS[player]
+                    
+                    #Decrement the column space from the stack list:
+                    column_space[player_input] = int(column_space[player_input]) - 1
+                    #print("After:", column_space[player_input], "\n")
 
-		else:
-			count = count + 1
-			print("This column is full!\n")	
-	else:
-		print("Your input is incorrect!")
+                else:
+                    print("This column is full!\n")
+                    Continue = True	 
+            
+            #Clear the screen and print the board once more: 
+            os.system("clear")
+            print_board()
+            print()
+
+            #Condition is all squares are filled and no one won, then we break out of this loop
+            if(count == BOARD_COL*BOARD_ROW): break
+
+            #If a player wins the game, then we terminate the program
+            win_check(player)
+        
+        #This is the condition for a draw, if so then we break out of the loop and terminate.
+        if(count == BOARD_COL*BOARD_ROW):
+            print("\nGAMEOVER! IT IS A DRAW!")
+            break
+#==============================================================================================================================
+#Program execution here: 
+main()
