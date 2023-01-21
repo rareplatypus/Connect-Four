@@ -39,7 +39,9 @@ def user_input(column):
         return(ord(column) - 65)
     
     else:
-        print("This is an invalid input!")
+        print("This is an invalid input! \n")
+        return -1
+
 #==============================================================================================================================
 #This function checks if the user has connected 4 in-a-row in all directions (vertically, horizontally, diagonally):
 def win_check(player):
@@ -127,7 +129,7 @@ def main():
 
     #Print the players (and their respective icons) as well as the winning condition:
     for items in range(players):
-        print("Player", (items+1), "has the icon:", ICONS[players]) 
+        print("Player", (items+1), "has the icon:", ICONS[items]) 
 
     print("How to Win: Match", WIN_CON, "checkers to win the game!\n")
 
@@ -140,6 +142,9 @@ def main():
                 Continue = False
                 str_display = "Player " + str(player+1) + " (" + str(ICONS[player]) + "), " + "Please enter a valid column: "
                 player_input = user_input(input(str_display))
+
+                while(player_input == -1):
+                    player_input = user_input(input(str_display))
 
                 #Checking if the column has space to put another ICON. 
                 #If so, it will take the ICON (of the appropriate player) and place it on the grid column.
